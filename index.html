@@ -156,7 +156,7 @@ h2 {
 <div id="kudosContainer"></div>
 
 <script>
-const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTUFBmt_yGlawz6j1i_r7cv1-3hxuNfpec-Yz2FdCz9gj4tgq40sZwRrdU3ZuILzBXtlKkOBBgPzYSI/pub?gid=810150762&single=true&output=csv";
+const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTUFBmt_yGlawz6j1i_r7cv1-3hxuNfpec-Yz2FdCz9gj4tgq40sZwRrdU3ZuILzBXtlKkOBBgPzYSI/pub?output=csv";
 
 function getMonthName(dateStr) {
   const date = new Date(dateStr);
@@ -190,7 +190,9 @@ fetch(csvUrl)
     data.slice(0,3).forEach(p => {
       const card = document.createElement("div");
       card.className = "card";
-      card.innerHTML = `<strong>${p.recognized}</strong><p>"${p.praise}"</p>`; // wrap praise in quotes
+      // Remove extra starting/ending quotes
+      let cleanPraise = p.praise.replace(/^"+|"+$/g, "").trim();
+      card.innerHTML = `<strong>${p.recognized}</strong><p>${cleanPraise}</p>`;
       recentGrid.appendChild(card);
     });
     container.appendChild(recentGrid);
@@ -216,7 +218,8 @@ fetch(csvUrl)
         grouped[month].forEach(p => {
           const card = document.createElement("div");
           card.className = "card";
-          card.innerHTML = `<strong>${p.recognized}</strong><p>"${p.praise}"</p>`; // wrap praise in quotes
+          let cleanPraise = p.praise.replace(/^"+|"+$/g, "").trim();
+          card.innerHTML = `<strong>${p.recognized}</strong><p>${cleanPraise}</p>`;
           monthGrid.appendChild(card);
 
           confetti({ particleCount: 10, spread: 70, origin: { y: 0.6 } });
