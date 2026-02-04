@@ -7,7 +7,7 @@
 
 <!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Modern+Love+Caps&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Modern+Love+Caps&display=swap">
 <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;700&display=swap" rel="stylesheet">
 
 <!-- Confetti Library -->
@@ -90,7 +90,6 @@ h2 {
   cursor: default;
 }
 
-/* HOVER TWINKLES */
 .card::after {
   content: '✨';
   position: absolute;
@@ -114,6 +113,12 @@ h2 {
   color: var(--accent);
   display: block;
   margin-bottom: 8px;
+  font-size: 20px; /* Name size */
+}
+
+.card p {
+  font-size: 16px; /* Comment size */
+  line-height: 1.4;
 }
 
 /* VISIBLE ANIMATION */
@@ -180,23 +185,6 @@ fetch(csvUrl)
 
     const container = document.getElementById("kudosContainer");
 
-    // --- Recent Comments Section ---
-    const recentHeader = document.createElement("h2");
-    recentHeader.textContent = "🌟 Recent Comments";
-    container.appendChild(recentHeader);
-
-    const recentGrid = document.createElement("div");
-    recentGrid.id = "kudosCards";
-    data.slice(0,3).forEach(p => {
-      const card = document.createElement("div");
-      card.className = "card";
-      // Remove extra starting/ending quotes
-      let cleanPraise = p.praise.replace(/^"+|"+$/g, "").trim();
-      card.innerHTML = `<strong>${p.recognized}</strong><p>${cleanPraise}</p>`;
-      recentGrid.appendChild(card);
-    });
-    container.appendChild(recentGrid);
-
     // --- Group by Month ---
     const grouped = {};
     data.forEach(d => {
@@ -219,7 +207,7 @@ fetch(csvUrl)
           const card = document.createElement("div");
           card.className = "card";
           let cleanPraise = p.praise.replace(/^"+|"+$/g, "").trim();
-          card.innerHTML = `<strong>${p.recognized}</strong><p>${cleanPraise}</p>`;
+          card.innerHTML = `<strong>${p.recognized}</strong><p>"${cleanPraise}"</p>`;
           monthGrid.appendChild(card);
 
           confetti({ particleCount: 10, spread: 70, origin: { y: 0.6 } });
