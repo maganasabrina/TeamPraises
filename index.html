@@ -4,11 +4,12 @@
 <meta charset="UTF-8" />
 <title>💛 Kudos Wall of Recognition 💛</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <!-- Google Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Modern+Love+Caps&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
 :root {
@@ -18,53 +19,47 @@
   --accent: #fbbf24;
 }
 
+/* BODY */
 body {
   margin: 0;
   padding: 40px 16px;
-  font-family: Arial, sans-serif;
+  font-family: 'Modern Love Caps', cursive;
   background: repeating-linear-gradient(90deg, var(--bg1) 0 60px, var(--bg2) 60px 120px);
   text-align: center;
   overflow-x: hidden;
 }
 
+/* HEADER */
 h1 {
   font-size: 60px;
   color: var(--primary);
   margin-bottom: 12px;
   font-family: 'Lobster', cursive;
+  position: relative;  /* ensures falling emojis go behind */
   z-index: 2;
-  position: relative;
 }
 
 p.subtitle {
-  font-family: 'Modern Love Caps', sans-serif;
-  font-size: 20px;
+  font-family: 'Modern Love Caps', cursive;
   color: var(--accent);
-  margin-bottom: 40px;
+  font-size: 24px;
+  margin-top: 0;
+  margin-bottom: 30px;
   z-index: 2;
   position: relative;
 }
 
-#latestKudos {
-  margin-bottom: 40px;
+/* MONTH HEADERS */
+h2 {
+  color: var(--accent);
+  margin-top: 40px;
+  margin-bottom: 16px;
+  font-size: 28px;
 }
 
-#latestKudos .card {
-  background: #fff3c4;
-  padding: 20px;
-  border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  font-size: 18px;
-  font-weight: bold;
-  display: inline-block;
-  max-width: 600px;
-  transition: transform 0.5s;
-  word-wrap: break-word;
-  white-space: normal;
-}
-
-#latestKudos .card:hover {
-  transform: scale(1.03);
+/* KUDOS CONTAINER */
+#kudosContainer {
+  margin-bottom: 60px;
 }
 
 #kudosCards {
@@ -75,6 +70,7 @@ p.subtitle {
   margin: 0 auto 40px;
 }
 
+/* CARD STYLING */
 .card {
   background: #fff8dc;
   padding: 20px;
@@ -85,14 +81,30 @@ p.subtitle {
   opacity: 0;
   transform: scale(0.85);
   transition: transform 0.5s ease, opacity 0.5s ease;
-  overflow: visible;      /* show all content */
+  overflow: visible;      /* allow full content */
   word-wrap: break-word;
-  white-space: normal;
+  white-space: pre-wrap;  /* preserve line breaks and wrap long text */
+  cursor: default;
 }
 
-.card.visible {
+/* HOVER TWINKLES */
+.card::after {
+  content: '✨';
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  opacity: 0;
+  font-size: 20px;
+  animation: twinkle 1.5s infinite;
+}
+
+.card:hover::after {
   opacity: 1;
-  transform: scale(1);
+}
+
+@keyframes twinkle {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.2; }
+  50% { transform: scale(1.3) rotate(20deg); opacity: 1; }
 }
 
 .card strong {
@@ -101,22 +113,13 @@ p.subtitle {
   margin-bottom: 8px;
 }
 
-.card:hover::after {
-  content: "✨";
-  position: absolute;
-  top: 5%;
-  left: 10%;
-  font-size: 14px;
-  opacity: 0.7;
-  animation: sparkle 0.8s infinite alternate;
+/* VISIBLE ANIMATION */
+.card.visible {
+  opacity: 1;
+  transform: scale(1);
 }
 
-@keyframes sparkle {
-  0% { transform: scale(1) rotate(0deg); opacity: 0.7; }
-  50% { transform: scale(1.3) rotate(20deg); opacity: 1; }
-  100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
-}
-
+/* FALLING EMOJIS */
 #falling-layer {
   position: fixed;
   inset: 0;
@@ -128,8 +131,9 @@ p.subtitle {
 .falling {
   position: absolute;
   top: -40px;
-  opacity: 0.85;
+  opacity: 0.5;
   animation: fall linear forwards;
+  font-size: 16px;
 }
 
 @keyframes fall {
@@ -139,15 +143,12 @@ p.subtitle {
 }
 </style>
 </head>
-<body>
 
+<body>
 <div id="falling-layer"></div>
 
 <h1>💛 Kudos Wall of Recognition 💛</h1>
 <p class="subtitle">Celebrating the amazing contributions of our team!</p>
-
-<!-- Latest Praise Spotlight -->
-<div id="latestKudos"></div>
 
 <div id="kudosContainer"></div>
 
@@ -174,18 +175,6 @@ fetch(csvUrl)
     // Sort by newest first
     data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-    // Latest Praise Spotlight
-    const latest = data[0];
-    if (latest) {
-      const latestContainer = document.getElementById("latestKudos");
-      const card = document.createElement("div");
-      card.className = "card visible";
-      card.innerHTML = `🌟 ${latest.recognized} 🌟<br>${latest.praise}`;
-      latestContainer.appendChild(card);
-
-      confetti({ particleCount: 100, spread: 120, origin: { y: 0.5 } });
-    }
-
     // Group by month
     const grouped = {};
     data.forEach(d => {
@@ -195,7 +184,8 @@ fetch(csvUrl)
     });
 
     const container = document.getElementById("kudosContainer");
-    Object.keys(grouped).sort((a,b) => new Date(grouped[b][0].date) - new Date(grouped[a][0].date))
+    Object.keys(grouped)
+      .sort((a,b) => new Date(grouped[b][0].date) - new Date(grouped[a][0].date))
       .forEach(month => {
         const monthHeader = document.createElement("h2");
         monthHeader.textContent = month;
@@ -203,23 +193,24 @@ fetch(csvUrl)
 
         const monthGrid = document.createElement("div");
         monthGrid.id = "kudosCards";
+
         grouped[month].forEach(p => {
           const card = document.createElement("div");
           card.className = "card";
           card.innerHTML = `<strong>${p.recognized}</strong><p>${p.praise}</p>`;
           monthGrid.appendChild(card);
 
-          confetti({ particleCount: 15, spread: 70, origin: { y: 0.6 } });
+          // Small confetti per card
+          confetti({ particleCount: 10, spread: 70, origin: { y: 0.6 } });
         });
+
         container.appendChild(monthGrid);
     });
 
     // Animate cards on scroll
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if(entry.isIntersecting) {
-          entry.target.classList.add("visible");
-        }
+        if(entry.isIntersecting) entry.target.classList.add("visible");
       });
     }, { threshold: 0.2 });
 
@@ -239,7 +230,5 @@ setInterval(() => {
   setTimeout(() => el.remove(), 12000);
 }, 500);
 </script>
-
 </body>
 </html>
-
