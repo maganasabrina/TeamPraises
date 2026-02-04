@@ -4,11 +4,11 @@
 <meta charset="UTF-8" />
 <title>💛 Kudos Wall of Recognition 💛</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Lobster&family=Modern+Love+Caps&display=swap" rel="stylesheet">
-
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Modern+Love+Caps&display=swap" rel="stylesheet">
 
 <style>
 :root {
@@ -27,33 +27,31 @@ body {
   overflow-x: hidden;
 }
 
-/* Header Fonts */
 h1 {
   font-size: 60px;
   color: var(--primary);
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   font-family: 'Lobster', cursive;
-  position: relative;
-  z-index: 2; /* above falling emojis */
-}
-
-p.subheader {
-  font-family: 'Modern+Love+Caps', sans-serif;
-  font-size: 24px;
-  color: var(--accent);
-  margin-bottom: 32px;
-  position: relative;
   z-index: 2;
+  position: relative;
 }
 
-/* Latest Praise Spotlight */
+p.subtitle {
+  font-family: 'Modern Love Caps', sans-serif;
+  font-size: 20px;
+  color: var(--accent);
+  margin-bottom: 40px;
+  z-index: 2;
+  position: relative;
+}
+
 #latestKudos {
   margin-bottom: 40px;
 }
 
 #latestKudos .card {
   background: #fff3c4;
-  padding: 30px;
+  padding: 20px;
   border-radius: 24px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   font-size: 18px;
@@ -61,30 +59,22 @@ p.subheader {
   display: inline-block;
   max-width: 600px;
   transition: transform 0.5s;
+  word-wrap: break-word;
+  white-space: normal;
 }
 
 #latestKudos .card:hover {
   transform: scale(1.03);
 }
 
-/* Monthly Cards Grid */
-.kudos-month {
+#kudosCards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
   max-width: 1000px;
-  margin: 16px auto 40px;
+  margin: 0 auto 40px;
 }
 
-/* Monthly Header */
-.kudos-month + h2 {
-  color: var(--accent);
-  margin-top: 40px;
-  margin-bottom: 16px;
-  font-size: 28px;
-}
-
-/* Card Styles */
 .card {
   background: #fff8dc;
   padding: 20px;
@@ -95,7 +85,9 @@ p.subheader {
   opacity: 0;
   transform: scale(0.85);
   transition: transform 0.5s ease, opacity 0.5s ease;
-  overflow: hidden; /* ensures sparkles don’t expand card */
+  overflow: visible;      /* show all content */
+  word-wrap: break-word;
+  white-space: normal;
 }
 
 .card.visible {
@@ -109,30 +101,22 @@ p.subheader {
   margin-bottom: 8px;
 }
 
-/* Twinkly Sparkles */
-.card .sparkle {
+.card:hover::after {
+  content: "✨";
   position: absolute;
-  color: #facc15;
-  font-size: 6px;
-  opacity: 0;
-  pointer-events: none;
-  animation: twinkle 1.5s infinite;
+  top: 5%;
+  left: 10%;
+  font-size: 14px;
+  opacity: 0.7;
+  animation: sparkle 0.8s infinite alternate;
 }
 
-.card:hover .sparkle {
-  opacity: 1;
+@keyframes sparkle {
+  0% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+  50% { transform: scale(1.3) rotate(20deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
 }
 
-@keyframes twinkle {
-  0% { transform: translate(0,0) rotate(0deg); opacity: 0.2; }
-  20% { opacity: 0.6; }
-  40% { transform: translate(2px,-2px) rotate(20deg); opacity: 0.8; }
-  60% { opacity: 0.4; }
-  80% { transform: translate(-2px,2px) rotate(-20deg); opacity: 0.7; }
-  100% { transform: translate(0,0) rotate(0deg); opacity: 0.2; }
-}
-
-/* Falling Emoji Layer */
 #falling-layer {
   position: fixed;
   inset: 0;
@@ -149,7 +133,9 @@ p.subheader {
 }
 
 @keyframes fall {
-  to { transform: translateY(110vh) rotate(360deg); }
+  to {
+    transform: translateY(110vh) rotate(360deg);
+  }
 }
 </style>
 </head>
@@ -158,7 +144,7 @@ p.subheader {
 <div id="falling-layer"></div>
 
 <h1>💛 Kudos Wall of Recognition 💛</h1>
-<p class="subheader">Celebrating the amazing contributions of our team!</p>
+<p class="subtitle">Celebrating the amazing contributions of our team!</p>
 
 <!-- Latest Praise Spotlight -->
 <div id="latestKudos"></div>
@@ -173,24 +159,11 @@ function getMonthName(dateStr) {
   return date.toLocaleString("default", { month: "long", year: "numeric" });
 }
 
-function addSparkles(card) {
-  for(let i=0;i<8;i++){
-    const sparkle = document.createElement("div");
-    sparkle.className = "sparkle";
-    sparkle.innerText = "✦";
-    sparkle.style.top = Math.random() * 100 + "%";
-    sparkle.style.left = Math.random() * 100 + "%";
-    sparkle.style.fontSize = 4 + Math.random() * 6 + "px";
-    sparkle.style.animationDuration = 1 + Math.random() * 1.5 + "s";
-    card.appendChild(sparkle);
-  }
-}
-
 fetch(csvUrl)
   .then(res => res.text())
   .then(text => {
     const rows = text.trim().split("\n").map(r => r.split(","));
-    rows.shift();
+    rows.shift(); // remove header
 
     const data = rows.map(r => ({
       date: r[0].trim(),
@@ -198,16 +171,16 @@ fetch(csvUrl)
       praise: r[3].trim()
     }));
 
+    // Sort by newest first
     data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
     // Latest Praise Spotlight
     const latest = data[0];
-    if(latest){
+    if (latest) {
       const latestContainer = document.getElementById("latestKudos");
       const card = document.createElement("div");
       card.className = "card visible";
       card.innerHTML = `🌟 ${latest.recognized} 🌟<br>${latest.praise}`;
-      addSparkles(card);
       latestContainer.appendChild(card);
 
       confetti({ particleCount: 100, spread: 120, origin: { y: 0.5 } });
@@ -215,57 +188,56 @@ fetch(csvUrl)
 
     // Group by month
     const grouped = {};
-    data.forEach(d=>{
+    data.forEach(d => {
       const month = getMonthName(d.date);
-      if(!grouped[month]) grouped[month]=[];
+      if (!grouped[month]) grouped[month] = [];
       grouped[month].push(d);
     });
 
     const container = document.getElementById("kudosContainer");
-    Object.keys(grouped).sort((a,b)=> new Date(grouped[b][0].date) - new Date(grouped[a][0].date))
-    .forEach(month=>{
-      const monthHeader = document.createElement("h2");
-      monthHeader.textContent = month;
-      monthHeader.style.color = "var(--accent)";
-      container.appendChild(monthHeader);
+    Object.keys(grouped).sort((a,b) => new Date(grouped[b][0].date) - new Date(grouped[a][0].date))
+      .forEach(month => {
+        const monthHeader = document.createElement("h2");
+        monthHeader.textContent = month;
+        container.appendChild(monthHeader);
 
-      const monthGrid = document.createElement("div");
-      monthGrid.className = "kudos-month";
+        const monthGrid = document.createElement("div");
+        monthGrid.id = "kudosCards";
+        grouped[month].forEach(p => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `<strong>${p.recognized}</strong><p>${p.praise}</p>`;
+          monthGrid.appendChild(card);
 
-      grouped[month].forEach(p=>{
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `<strong>${p.recognized}</strong><p>${p.praise}</p>`;
-        addSparkles(card);
-        monthGrid.appendChild(card);
-
-        confetti({ particleCount: 15, spread: 70, origin: { y: 0.6 } });
-      });
-
-      container.appendChild(monthGrid);
+          confetti({ particleCount: 15, spread: 70, origin: { y: 0.6 } });
+        });
+        container.appendChild(monthGrid);
     });
 
-    const observer = new IntersectionObserver((entries)=>{
-      entries.forEach(entry=>{
-        if(entry.isIntersecting) entry.target.classList.add("visible");
+    // Animate cards on scroll
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting) {
+          entry.target.classList.add("visible");
+        }
       });
-    }, {threshold:0.2});
+    }, { threshold: 0.2 });
 
-    document.querySelectorAll(".card").forEach(card=>observer.observe(card));
+    document.querySelectorAll(".card").forEach(card => observer.observe(card));
   });
 
-// Falling emojis
+// Falling emojis in background
 const FALLING_THEMES = ["💛","🎉","⭐","👏","🌟"];
-setInterval(()=>{
+setInterval(() => {
   const el = document.createElement("div");
-  el.className="falling";
-  el.innerText = FALLING_THEMES[Math.floor(Math.random()*FALLING_THEMES.length)];
-  el.style.left = Math.random()*100 + "vw";
-  el.style.fontSize = 16 + Math.random()*20 + "px";
-  el.style.animationDuration = 6 + Math.random()*6 + "s";
+  el.className = "falling";
+  el.innerText = FALLING_THEMES[Math.floor(Math.random() * FALLING_THEMES.length)];
+  el.style.left = Math.random() * 100 + "vw";
+  el.style.fontSize = 16 + Math.random() * 20 + "px";
+  el.style.animationDuration = 6 + Math.random() * 6 + "s";
   document.getElementById("falling-layer").appendChild(el);
-  setTimeout(()=>el.remove(),12000);
-},500);
+  setTimeout(() => el.remove(), 12000);
+}, 500);
 </script>
 
 </body>
