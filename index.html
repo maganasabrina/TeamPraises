@@ -6,6 +6,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Lobster&display=swap" rel="stylesheet">
+
 <style>
   :root {
     --bg1: #fff8e7;
@@ -27,6 +30,7 @@
     font-size: 36px;
     color: var(--primary);
     margin-bottom: 12px;
+    font-family: 'Lobster', cursive;
   }
 
   h2 {
@@ -133,7 +137,7 @@ fetch(csvUrl)
   .then(res => res.text())
   .then(text => {
     const rows = text.trim().split("\n").map(r => r.split(","));
-    const headers = rows.shift();
+    rows.shift(); // remove header
 
     const data = rows.map(r => ({
       date: r[0].trim(),
@@ -150,7 +154,7 @@ fetch(csvUrl)
       const latestContainer = document.getElementById("latestKudos");
       const card = document.createElement("div");
       card.className = "card visible";
-      card.innerHTML = `🌟 ${latest.recognized} - ${latest.date} 🌟<br>${latest.praise}`;
+      card.innerHTML = `🌟 ${latest.recognized} 🌟<br>${latest.praise}`;
       latestContainer.appendChild(card);
 
       // Confetti for latest
@@ -177,7 +181,8 @@ fetch(csvUrl)
         grouped[month].forEach(p => {
           const card = document.createElement("div");
           card.className = "card";
-          card.innerHTML = `<strong>${p.recognized} - ${p.date}</strong><p>${p.praise}</p>`;
+          // Removed timestamp here
+          card.innerHTML = `<strong>${p.recognized}</strong><p>${p.praise}</p>`;
           monthGrid.appendChild(card);
 
           // Small confetti per card
