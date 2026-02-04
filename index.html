@@ -6,8 +6,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Lobster&family=Modern+Love+Caps&display=swap" rel="stylesheet">
+<!-- Google Fonts: Lobster + Montserrat -->
+<link href="https://fonts.googleapis.com/css2?family=Lobster&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 
 <style>
 :root {
@@ -20,13 +20,12 @@
 body {
   margin: 0;
   padding: 40px 16px;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   background: repeating-linear-gradient(90deg, var(--bg1) 0 60px, var(--bg2) 60px 120px);
   text-align: center;
   overflow-x: hidden;
 }
 
-/* Header */
 h1 {
   font-size: 60px;
   color: var(--primary);
@@ -34,45 +33,21 @@ h1 {
   font-family: 'Lobster', cursive;
 }
 
-/* Subtitle */
 .subtitle {
-  font-family: 'Modern Love Caps';
-  font-size: 36px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
   color: #555;
-  letter-spacing: 1px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
   margin-top: 0;
 }
 
-/* Latest Praise Spotlight */
 #latestKudos {
   margin-bottom: 40px;
 }
 
-#latestKudos .card {
-  background: #fff3c4;
-  padding: 30px;
-  border-radius: 24px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  font-size: 18px;
-  font-weight: bold;
-  display: inline-block;
-  max-width: 600px;
-  transition: transform 0.5s;
-}
-
-#latestKudos .card:hover {
-  transform: scale(1.03);
-}
-
-/* Monthly Kudos Grid */
-#kudosCards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  max-width: 1000px;
-  margin: 0 auto 40px;
-}
-
+#latestKudos .card,
 .card {
   background: #fff8dc;
   padding: 20px;
@@ -83,6 +58,16 @@ h1 {
   opacity: 0;
   transform: scale(0.85);
   transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+#latestKudos .card.visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+#latestKudos .card:hover,
+.card:hover {
+  transform: scale(1.05);
 }
 
 .card.visible {
@@ -96,7 +81,22 @@ h1 {
   margin-bottom: 8px;
 }
 
-/* Falling emojis */
+#kudosCards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  max-width: 1000px;
+  margin: 0 auto 40px;
+}
+
+h2 {
+  color: var(--accent);
+  margin-top: 40px;
+  margin-bottom: 16px;
+  font-size: 28px;
+}
+
+/* Falling emojis background */
 #falling-layer {
   position: fixed;
   inset: 0;
@@ -117,14 +117,6 @@ h1 {
     transform: translateY(110vh) rotate(360deg);
   }
 }
-
-/* Monthly headers */
-h2 {
-  color: var(--accent);
-  margin-top: 40px;
-  margin-bottom: 16px;
-  font-size: 28px;
-}
 </style>
 </head>
 <body>
@@ -134,9 +126,7 @@ h2 {
 <h1>💛 Kudos Wall of Recognition 💛</h1>
 <p class="subtitle">Celebrating the amazing contributions of our team!</p>
 
-<!-- Latest Praise Spotlight -->
 <div id="latestKudos"></div>
-
 <div id="kudosContainer"></div>
 
 <script>
@@ -159,10 +149,8 @@ fetch(csvUrl)
       praise: r[3].trim()
     }));
 
-    // Sort by newest first
     data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
-    // Latest Praise Spotlight
     const latest = data[0];
     if (latest) {
       const latestContainer = document.getElementById("latestKudos");
@@ -170,12 +158,9 @@ fetch(csvUrl)
       card.className = "card visible";
       card.innerHTML = `🌟 ${latest.recognized} 🌟<br>${latest.praise}`;
       latestContainer.appendChild(card);
-
-      // Confetti for latest
       confetti({ particleCount: 100, spread: 120, origin: { y: 0.5 } });
     }
 
-    // Group by month
     const grouped = {};
     data.forEach(d => {
       const month = getMonthName(d.date);
@@ -195,17 +180,13 @@ fetch(csvUrl)
         grouped[month].forEach(p => {
           const card = document.createElement("div");
           card.className = "card";
-          // Removed timestamp
           card.innerHTML = `<strong>${p.recognized}</strong><p>${p.praise}</p>`;
           monthGrid.appendChild(card);
-
-          // Small confetti per card
           confetti({ particleCount: 15, spread: 70, origin: { y: 0.6 } });
         });
         container.appendChild(monthGrid);
     });
 
-    // Animate cards on scroll
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if(entry.isIntersecting) {
@@ -217,8 +198,7 @@ fetch(csvUrl)
     document.querySelectorAll(".card").forEach(card => observer.observe(card));
   });
 
-// Falling emojis in background
-const FALLING_THEMES = ["💛","🎉","✨","👏","🌟","🤩",];
+const FALLING_THEMES = ["💛","🎉","⭐","👏","🌟"];
 setInterval(() => {
   const el = document.createElement("div");
   el.className = "falling";
@@ -233,3 +213,4 @@ setInterval(() => {
 
 </body>
 </html>
+
