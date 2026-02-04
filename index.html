@@ -6,19 +6,18 @@
   <style>
     body { font-family: Arial, sans-serif; padding: 20px; }
     select, ul { width: 100%; margin-top: 10px; }
-    li { margin-bottom: 10px; }
+    li { margin-bottom: 10px; background: #fef3c7; padding: 10px; border-radius: 8px; }
   </style>
 </head>
 <body>
-
   <h1>Team Praise 💛</h1>
   <p>Select your name to see your praise:</p>
 
-  <select id="employeeSelect"><option value="">-- Choose Your Name --</option></select>
+  <select id="teamSelect"><option value="">-- Choose Your Name --</option></select>
   <ul id="praiseList"></ul>
 
   <script>
-    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTUFBmt_yGlawz6j1i_r7cv1-3hxuNfpec-Yz2FdCz9gj4tgq40sZwRrdU3ZuILzBXtlKkOBBgPzYSI/pub?output=csv";
+    const csvUrl = "PASTE_YOUR_CSV_LINK_HERE"; // Use your published CSV link
 
     fetch(csvUrl)
       .then(res => res.text())
@@ -27,14 +26,14 @@
         const headers = rows.shift(); // remove header row
 
         const data = rows.map(r => ({
-          name: r[0].trim(),
-          praise: r[1].trim(),
-          date: r[2] ? r[2].trim() : ""
+          date: r[0].trim(),                   // Timestamp
+          recognized: r[2].trim(),             // Who is being recognized
+          praise: r[3].trim()                  // Recognition / Praise
         }));
 
-        // populate dropdown
-        const names = [...new Set(data.map(d => d.name))].sort();
-        const select = document.getElementById("employeeSelect");
+        // Fill dropdown with unique names of recognized people
+        const names = [...new Set(data.map(d => d.recognized))].sort();
+        const select = document.getElementById("teamSelect");
 
         names.forEach(name => {
           const opt = document.createElement("option");
@@ -43,20 +42,19 @@
           select.appendChild(opt);
         });
 
-        // when a name is chosen
+        // Show praise for selected person
         select.onchange = () => {
           const chosen = select.value;
           const list = document.getElementById("praiseList");
           list.innerHTML = "";
 
-          data.filter(d => d.name === chosen).forEach(d => {
-            const item = document.createElement("li");
-            item.textContent = `${d.praise} (${d.date})`;
-            list.appendChild(item);
+          data.filter(d => d.recognized === chosen).forEach(d => {
+            const li = document.createElement("li");
+            li.innerHTML = `<strong>${d.date}:</strong> ${d.praise}`;
+            list.appendChild(li);
           });
         };
       });
   </script>
-
 </body>
 </html>
