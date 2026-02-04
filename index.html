@@ -29,18 +29,11 @@
     margin-bottom: 8px;
   }
 
-  p {
-    font-size: 16px;
-    color: #333;
-  }
-
-  select {
-    padding: 10px 16px;
-    font-size: 16px;
-    border-radius: 12px;
-    border: 2px solid var(--primary);
-    margin-bottom: 20px;
-    cursor: pointer;
+  h2 {
+    color: var(--accent);
+    margin-top: 40px;
+    margin-bottom: 16px;
+    font-size: 28px;
   }
 
   #kudosCards {
@@ -48,7 +41,7 @@
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 16px;
     max-width: 1000px;
-    margin: 0 auto;
+    margin: 0 auto 40px;
   }
 
   .card {
@@ -98,18 +91,18 @@
 <div id="falling-layer"></div>
 
 <h1>💛 Kudos Wall of Recognition 💛</h1>
-<p>Select your name to see your praise!</p>
+<p>All recognitions from the team, organized by month!</p>
 
-<select id="teamSelect">
-  <option value="">-- Choose Your Name --</option>
-</select>
-
-<div id="kudosCards"></div>
+<div id="kudosContainer"></div>
 
 <script>
-  const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTUFBmt_yGlawz6j1i_r7cv1-3hxuNfpec-Yz2FdCz9gj4tgq40sZwRrdU3ZuILzBXtlKkOBBgPzYSI/pub?gid=810150762&single=true&output=csv";
+  const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTUFBmt_yGlawz6j1i_r7cv1-3hxuNfpec-Yz2FdCz9gj4tgq40sZwRrdU3ZuILzBXtlKkOBBgPzYSI/pub?output=csv";
 
-  // Fetch and parse Google Sheet CSV
+  function getMonthName(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleString("default", { month: "long", year: "numeric" });
+  }
+
   fetch(csvUrl)
     .then(res => res.text())
     .then(text => {
@@ -122,32 +115,34 @@
         praise: r[3].trim()
       }));
 
-      // Populate dropdown
-      const names = [...new Set(data.map(d => d.recognized))].sort();
-      const select = document.getElementById("teamSelect");
-      names.forEach(name => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        select.appendChild(opt);
+      // Group by month
+      const grouped = {};
+      data.forEach(d => {
+        const month = getMonthName(d.date);
+        if (!grouped[month]) grouped[month] = [];
+        grouped[month].push(d);
       });
 
-      // Show praise cards for selected person
-      select.onchange = () => {
-        const chosen = select.value;
-        const container = document.getElementById("kudosCards");
-        container.innerHTML = "";
-        const praises = data.filter(d => d.recognized === chosen);
-        praises.forEach(p => {
-          const card = document.createElement("div");
-          card.className = "card";
-          card.innerHTML = `<strong>${p.date}</strong><p>${p.praise}</p>`;
-          container.appendChild(card);
+      const container = document.getElementById("kudosContainer");
+      Object.keys(grouped).sort((a,b) => new Date(grouped[b][0].date) - new Date(grouped[a][0].date))
+        .forEach(month => {
+          const monthHeader = document.createElement("h2");
+          monthHeader.textContent = month;
+          container.appendChild(monthHeader);
 
-          // Fire small confetti per card
-          confetti({ particleCount: 20, spread: 70, origin: { y: 0.6 } });
-        });
-      };
+          const monthGrid = document.createElement("div");
+          monthGrid.id = "kudosCards";
+          grouped[month].forEach(p => {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerHTML = `<strong>${p.recognized} - ${p.date}</strong><p>${p.praise}</p>`;
+            monthGrid.appendChild(card);
+
+            // Confetti for new card
+            confetti({ particleCount: 15, spread: 70, origin: { y: 0.6 } });
+          });
+          container.appendChild(monthGrid);
+      });
     });
 
 // Falling emojis in background
