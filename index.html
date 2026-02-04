@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Team Praise Wall 💛</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    select, ul { width: 100%; margin-top: 10px; }
+    li { margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+  <h1>Team Praise 💛</h1>
+  <p>Select your name to see your praise:</p>
+
+  <select id="employeeSelect"><option value="">-- Choose Your Name --</option></select>
+  <ul id="praiseList"></ul>
+
+  <script>
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTUFBmt_yGlawz6j1i_r7cv1-3hxuNfpec-Yz2FdCz9gj4tgq40sZwRrdU3ZuILzBXtlKkOBBgPzYSI/pub?output=csv";
+
+    fetch(csvUrl)
+      .then(res => res.text())
+      .then(text => {
+        const rows = text.trim().split("\n").map(r => r.split(","));
+        const headers = rows.shift(); // remove header row
+
+        const data = rows.map(r => ({
+          name: r[0].trim(),
+          praise: r[1].trim(),
+          date: r[2] ? r[2].trim() : ""
+        }));
+
+        // populate dropdown
+        const names = [...new Set(data.map(d => d.name))].sort();
+        const select = document.getElementById("employeeSelect");
+
+        names.forEach(name => {
+          const opt = document.createElement("option");
+          opt.value = name;
+          opt.textContent = name;
+          select.appendChild(opt);
+        });
+
+        // when a name is chosen
+        select.onchange = () => {
+          const chosen = select.value;
+          const list = document.getElementById("praiseList");
+          list.innerHTML = "";
+
+          data.filter(d => d.name === chosen).forEach(d => {
+            const item = document.createElement("li");
+            item.textContent = `${d.praise} (${d.date})`;
+            list.appendChild(item);
+          });
+        };
+      });
+  </script>
+
+</body>
+</html>
