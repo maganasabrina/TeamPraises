@@ -34,7 +34,7 @@ h1 {
   margin-bottom: 8px;
   font-family: 'Lobster', cursive;
   position: relative;
-  z-index: 2; /* ensures header is above falling emojis */
+  z-index: 2; /* above falling emojis */
 }
 
 p.subheader {
@@ -51,9 +51,20 @@ p.subheader {
   margin-bottom: 40px;
 }
 
-/* Kudos Cards Container */
-#kudosContainer {
-  margin-bottom: 40px;
+#latestKudos .card {
+  background: #fff3c4;
+  padding: 30px;
+  border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  font-size: 18px;
+  font-weight: bold;
+  display: inline-block;
+  max-width: 600px;
+  transition: transform 0.5s;
+}
+
+#latestKudos .card:hover {
+  transform: scale(1.03);
 }
 
 /* Monthly Cards Grid */
@@ -63,6 +74,14 @@ p.subheader {
   gap: 16px;
   max-width: 1000px;
   margin: 16px auto 40px;
+}
+
+/* Monthly Header */
+.kudos-month + h2 {
+  color: var(--accent);
+  margin-top: 40px;
+  margin-bottom: 16px;
+  font-size: 28px;
 }
 
 /* Card Styles */
@@ -76,7 +95,7 @@ p.subheader {
   opacity: 0;
   transform: scale(0.85);
   transition: transform 0.5s ease, opacity 0.5s ease;
-  overflow: hidden;
+  overflow: hidden; /* ensures sparkles don’t expand card */
 }
 
 .card.visible {
@@ -90,25 +109,27 @@ p.subheader {
   margin-bottom: 8px;
 }
 
-/* Hover Random Sparkles */
+/* Twinkly Sparkles */
 .card .sparkle {
   position: absolute;
-  font-size: 14px;
+  color: #facc15;
+  font-size: 6px;
   opacity: 0;
   pointer-events: none;
-  animation: float 1.5s linear infinite;
+  animation: twinkle 1.5s infinite;
 }
 
 .card:hover .sparkle {
   opacity: 1;
 }
 
-@keyframes float {
+@keyframes twinkle {
   0% { transform: translate(0,0) rotate(0deg); opacity: 0.2; }
-  25% { transform: translate(5px,-10px) rotate(20deg); opacity: 0.5; }
-  50% { transform: translate(-5px,-15px) rotate(45deg); opacity: 0.8; }
-  75% { transform: translate(8px,-10px) rotate(70deg); opacity: 0.5; }
-  100% { transform: translate(0,0) rotate(100deg); opacity: 0.2; }
+  20% { opacity: 0.6; }
+  40% { transform: translate(2px,-2px) rotate(20deg); opacity: 0.8; }
+  60% { opacity: 0.4; }
+  80% { transform: translate(-2px,2px) rotate(-20deg); opacity: 0.7; }
+  100% { transform: translate(0,0) rotate(0deg); opacity: 0.2; }
 }
 
 /* Falling Emoji Layer */
@@ -128,9 +149,7 @@ p.subheader {
 }
 
 @keyframes fall {
-  to {
-    transform: translateY(110vh) rotate(360deg);
-  }
+  to { transform: translateY(110vh) rotate(360deg); }
 }
 </style>
 </head>
@@ -155,14 +174,13 @@ function getMonthName(dateStr) {
 }
 
 function addSparkles(card) {
-  const sparkleEmojis = ["✨","🌟","💫"];
-  for(let i=0;i<5;i++){
+  for(let i=0;i<8;i++){
     const sparkle = document.createElement("div");
     sparkle.className = "sparkle";
-    sparkle.innerText = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+    sparkle.innerText = "✦";
     sparkle.style.top = Math.random() * 100 + "%";
     sparkle.style.left = Math.random() * 100 + "%";
-    sparkle.style.fontSize = 10 + Math.random() * 12 + "px";
+    sparkle.style.fontSize = 4 + Math.random() * 6 + "px";
     sparkle.style.animationDuration = 1 + Math.random() * 1.5 + "s";
     card.appendChild(sparkle);
   }
@@ -172,7 +190,7 @@ fetch(csvUrl)
   .then(res => res.text())
   .then(text => {
     const rows = text.trim().split("\n").map(r => r.split(","));
-    rows.shift(); // remove header
+    rows.shift();
 
     const data = rows.map(r => ({
       date: r[0].trim(),
@@ -180,12 +198,11 @@ fetch(csvUrl)
       praise: r[3].trim()
     }));
 
-    // Sort by newest first
     data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
     // Latest Praise Spotlight
     const latest = data[0];
-    if (latest) {
+    if(latest){
       const latestContainer = document.getElementById("latestKudos");
       const card = document.createElement("div");
       card.className = "card visible";
@@ -198,59 +215,57 @@ fetch(csvUrl)
 
     // Group by month
     const grouped = {};
-    data.forEach(d => {
+    data.forEach(d=>{
       const month = getMonthName(d.date);
-      if (!grouped[month]) grouped[month] = [];
+      if(!grouped[month]) grouped[month]=[];
       grouped[month].push(d);
     });
 
     const container = document.getElementById("kudosContainer");
-    Object.keys(grouped).sort((a,b) => new Date(grouped[b][0].date) - new Date(grouped[a][0].date))
-      .forEach(month => {
-        const monthHeader = document.createElement("h2");
-        monthHeader.textContent = month;
-        container.appendChild(monthHeader);
+    Object.keys(grouped).sort((a,b)=> new Date(grouped[b][0].date) - new Date(grouped[a][0].date))
+    .forEach(month=>{
+      const monthHeader = document.createElement("h2");
+      monthHeader.textContent = month;
+      monthHeader.style.color = "var(--accent)";
+      container.appendChild(monthHeader);
 
-        const monthGrid = document.createElement("div");
-        monthGrid.className = "kudos-month";
+      const monthGrid = document.createElement("div");
+      monthGrid.className = "kudos-month";
 
-        grouped[month].forEach(p => {
-          const card = document.createElement("div");
-          card.className = "card";
-          card.innerHTML = `<strong>${p.recognized}</strong><p>${p.praise}</p>`;
-          addSparkles(card);
-          monthGrid.appendChild(card);
+      grouped[month].forEach(p=>{
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<strong>${p.recognized}</strong><p>${p.praise}</p>`;
+        addSparkles(card);
+        monthGrid.appendChild(card);
 
-          confetti({ particleCount: 15, spread: 70, origin: { y: 0.6 } });
-        });
+        confetti({ particleCount: 15, spread: 70, origin: { y: 0.6 } });
+      });
 
-        container.appendChild(monthGrid);
+      container.appendChild(monthGrid);
     });
 
-    // Animate cards on scroll
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if(entry.isIntersecting) {
-          entry.target.classList.add("visible");
-        }
+    const observer = new IntersectionObserver((entries)=>{
+      entries.forEach(entry=>{
+        if(entry.isIntersecting) entry.target.classList.add("visible");
       });
-    }, { threshold: 0.2 });
+    }, {threshold:0.2});
 
-    document.querySelectorAll(".card").forEach(card => observer.observe(card));
+    document.querySelectorAll(".card").forEach(card=>observer.observe(card));
   });
 
-// Falling emojis in background
+// Falling emojis
 const FALLING_THEMES = ["💛","🎉","⭐","👏","🌟"];
-setInterval(() => {
+setInterval(()=>{
   const el = document.createElement("div");
-  el.className = "falling";
-  el.innerText = FALLING_THEMES[Math.floor(Math.random() * FALLING_THEMES.length)];
-  el.style.left = Math.random() * 100 + "vw";
-  el.style.fontSize = 16 + Math.random() * 20 + "px";
-  el.style.animationDuration = 6 + Math.random() * 6 + "s";
+  el.className="falling";
+  el.innerText = FALLING_THEMES[Math.floor(Math.random()*FALLING_THEMES.length)];
+  el.style.left = Math.random()*100 + "vw";
+  el.style.fontSize = 16 + Math.random()*20 + "px";
+  el.style.animationDuration = 6 + Math.random()*6 + "s";
   document.getElementById("falling-layer").appendChild(el);
-  setTimeout(() => el.remove(), 12000);
-}, 500);
+  setTimeout(()=>el.remove(),12000);
+},500);
 </script>
 
 </body>
