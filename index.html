@@ -12,8 +12,6 @@
 
 <!-- Confetti Library -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<!-- PapaParse for CSV parsing -->
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
 :root {
@@ -168,11 +166,13 @@ function getMonthName(dateStr) {
 fetch(csvUrl)
   .then(res => res.text())
   .then(text => {
-    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
-    const data = parsed.data.map(d => ({
-      date: d['Date'].trim(),
-      recognized: d['Recognized'].trim(),
-      praise: d['Praise'].trim()
+    const rows = text.trim().split("\n").map(r => r.split(","));
+    rows.shift(); // remove header
+
+    const data = rows.map(r => ({
+      date: r[0].trim(),
+      recognized: r[2].trim(),
+      praise: r.slice(3).join(",").trim() // join extra columns so commas in comments work
     }));
 
     // Sort by newest first
@@ -190,7 +190,7 @@ fetch(csvUrl)
     data.slice(0,3).forEach(p => {
       const card = document.createElement("div");
       card.className = "card";
-      card.innerHTML = `<strong>${p.recognized}</strong><p>${p.praise}</p>`;
+      card.innerHTML = `<strong>${p.recognized}</strong><p>"${p.praise}"</p>`; // wrap praise in quotes
       recentGrid.appendChild(card);
     });
     container.appendChild(recentGrid);
@@ -216,7 +216,7 @@ fetch(csvUrl)
         grouped[month].forEach(p => {
           const card = document.createElement("div");
           card.className = "card";
-          card.innerHTML = `<strong>${p.recognized}</strong><p>${p.praise}</p>`;
+          card.innerHTML = `<strong>${p.recognized}</strong><p>"${p.praise}"</p>`; // wrap praise in quotes
           monthGrid.appendChild(card);
 
           confetti({ particleCount: 10, spread: 70, origin: { y: 0.6 } });
