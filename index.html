@@ -68,13 +68,12 @@ h2 {
   margin-bottom: 60px;
 }
 
+/* ✨ PINTEREST MASONRY LAYOUT */
 #kudosCards {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
+  column-width: 280px;
+  column-gap: 16px;
   max-width: 1000px;
   margin: 0 auto 40px;
-  align-items: start; /* Prevents cards from stretching to match tallest */
 }
 
 /* CARD STYLING */
@@ -92,6 +91,8 @@ h2 {
   word-wrap: break-word;
   white-space: pre-wrap;
   cursor: default;
+  break-inside: avoid;
+  margin-bottom: 16px;
 }
 
 .card::after {
@@ -185,15 +186,11 @@ fetch(csvUrl)
     const rows = parsed.data;
     rows.shift();
 
-    const data = rows.map(r => {
-
-      const date = r[0]?.trim() || "";
-      const recognized = r[2]?.trim() || "";
-      const praise = r[3]?.trim() || "";
-
-      return { date, recognized, praise };
-
-    }).filter(d => d.date && d.recognized && d.praise);
+    const data = rows.map(r => ({
+      date: r[0]?.trim() || "",
+      recognized: r[2]?.trim() || "",
+      praise: r[3]?.trim() || ""
+    })).filter(d => d.date && d.recognized && d.praise);
 
     data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
