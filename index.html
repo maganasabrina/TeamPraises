@@ -13,7 +13,7 @@
 <!-- Confetti Library -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-<!-- CSV Parser Fix -->
+<!-- CSV Parser -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
@@ -196,63 +196,6 @@ fetch(csvUrl)
 
     }).filter(d => d.date && d.recognized && d.praise);
 
-    // Sort by newest first
-    data.sort((a,b) => new Date(b.date) - new Date(a.date));
-
-    const container = document.getElementById("kudosContainer");
-
-    const grouped = {};
-    data.forEach(d => {
-      const month = getMonthName(d.date);
-      if (!grouped[month]) grouped[month] = [];
-      grouped[month].push(d);
-    });
-
-    Object.keys(grouped)
-      .sort((a,b) => new Date(grouped[b][0].date) - new Date(grouped[a][0].date))
-      .forEach(month => {
-
-        const monthHeader = document.createElement("h2");
-        monthHeader.textContent = month;
-        container.appendChild(monthHeader);
-
-        const monthGrid = document.createElement("div");
-        monthGrid.id = "kudosCards";
-
-        grouped[month].forEach(p => {
-          const card = document.createElement("div");
-          card.className = "card";
-          card.innerHTML = `<strong>${p.recognized}</strong><p>"${p.praise}"</p>`;
-          monthGrid.appendChild(card);
-
-          confetti({ particleCount: 10, spread: 70, origin: { y: 0.6 } });
-        });
-
-        container.appendChild(monthGrid);
-      });
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if(entry.isIntersecting) entry.target.classList.add("visible");
-      });
-    }, { threshold: 0.2 });
-
-    document.querySelectorAll(".card").forEach(card => observer.observe(card));
-  });
-
-    });
-
-    const data = parsed.data.map(row => {
-
-      const date = row["Timestamp"]?.trim() || "";
-      const recognized = row["Who are you recognizing?"]?.trim() || "";
-      const praise = row["What would you like to say?"]?.trim() || "";
-
-      return { date, recognized, praise };
-
-    }).filter(d => d.date && d.recognized && d.praise);
-
-    // Sort by newest first
     data.sort((a,b) => new Date(b.date) - new Date(a.date));
 
     const container = document.getElementById("kudosContainer");
