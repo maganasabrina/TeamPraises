@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -12,6 +12,9 @@
 
 <!-- Confetti Library -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+<!-- PapaParse CSV Fix -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
 :root {
@@ -113,12 +116,12 @@ h2 {
   color: var(--accent);
   display: block;
   margin-bottom: 8px;
-  font-size: 20px; /* Name size */
-  font-family: 'Mulish', sans-serif; /* Match subtitle font */
+  font-size: 20px;
+  font-family: 'Mulish', sans-serif;
 }
 
 .card p {
-  font-size: 16px; /* Comment size */
+  font-size: 16px;
   line-height: 1.4;
 }
 
@@ -172,20 +175,23 @@ function getMonthName(dateStr) {
 fetch(csvUrl)
   .then(res => res.text())
   .then(text => {
-    const rows = text.trim().split("\n").map(r => r.split(","));
-    rows.shift(); // remove header
 
-    // Cleanly parse CSV
-    const data = rows.map(r => {
-      const date = r[0].trim();
-      const recognized = r[2].trim();
-      let praise = r.slice(3).join(",").trim();
-
-      // Remove extra quotes and commas at start/end
-      praise = praise.replace(/^["',\s]+|["',\s]+$/g, "").trim();
-
-      return { date, recognized, praise };
+    const parsed = Papa.parse(text, {
+      header: true,
+      skipEmptyLines: true
     });
+
+    const rows = parsed.data;
+
+    const data = rows.map(r => {
+      const values = Object.values(r);
+
+      return {
+        date: values[0]?.trim(),
+        recognized: values[2]?.trim(),
+        praise: values.slice(3).join(", ").trim()
+      };
+    }).filter(d => d.date && d.recognized && d.praise);
 
     // Sort by newest first
     data.sort((a,b) => new Date(b.date) - new Date(a.date));
