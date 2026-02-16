@@ -13,7 +13,7 @@
 <!-- Confetti Library -->
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-<!-- PapaParse CSV Fix -->
+<!-- CSV Parser Fix -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <style>
@@ -181,16 +181,14 @@ fetch(csvUrl)
       skipEmptyLines: true
     });
 
-    const rows = parsed.data;
+    const data = parsed.data.map(row => {
 
-    const data = rows.map(r => {
-      const values = Object.values(r);
+      const date = row["Timestamp"]?.trim() || "";
+      const recognized = row["Who are you recognizing?"]?.trim() || "";
+      const praise = row["What would you like to say?"]?.trim() || "";
 
-      return {
-        date: values[0]?.trim(),
-        recognized: values[2]?.trim(),
-        praise: values.slice(3).join(", ").trim()
-      };
+      return { date, recognized, praise };
+
     }).filter(d => d.date && d.recognized && d.praise);
 
     // Sort by newest first
@@ -198,7 +196,6 @@ fetch(csvUrl)
 
     const container = document.getElementById("kudosContainer");
 
-    // --- Group by Month ---
     const grouped = {};
     data.forEach(d => {
       const month = getMonthName(d.date);
@@ -209,6 +206,7 @@ fetch(csvUrl)
     Object.keys(grouped)
       .sort((a,b) => new Date(grouped[b][0].date) - new Date(grouped[a][0].date))
       .forEach(month => {
+
         const monthHeader = document.createElement("h2");
         monthHeader.textContent = month;
         container.appendChild(monthHeader);
@@ -226,9 +224,8 @@ fetch(csvUrl)
         });
 
         container.appendChild(monthGrid);
-    });
+      });
 
-    // Animate cards on scroll
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if(entry.isIntersecting) entry.target.classList.add("visible");
