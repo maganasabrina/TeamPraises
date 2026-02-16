@@ -74,6 +74,7 @@ h2 {
   gap: 16px;
   max-width: 1000px;
   margin: 0 auto 40px;
+  align-items: start; /* Prevents cards from stretching to match tallest */
 }
 
 /* CARD STYLING */
@@ -182,8 +183,6 @@ fetch(csvUrl)
     });
 
     const rows = parsed.data;
-
-    // Remove header row
     rows.shift();
 
     const data = rows.map(r => {
@@ -239,7 +238,6 @@ fetch(csvUrl)
     document.querySelectorAll(".card").forEach(card => observer.observe(card));
   });
 
-// Falling emojis in background
 const FALLING_THEMES = ["💛","🎉","⭐","👏","🌟"];
 setInterval(() => {
   const el = document.createElement("div");
